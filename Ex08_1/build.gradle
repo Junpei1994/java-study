@@ -1,0 +1,68 @@
+buildscript {
+    repositories { jcenter() }
+    dependencies { classpath("org.springframework.boot:spring-boot-gradle-plugin:1.5.6.RELEASE") }
+}
+
+apply plugin: 'java'
+apply plugin: 'org.springframework.boot'
+apply plugin: 'eclipse'
+
+repositories { jcenter() }
+
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+    compile 'org.postgresql:postgresql:42.1.4'
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
+
+eclipse {
+    project {
+        natures 'org.springframework.ide.eclipse.core.springnature'
+
+        // Gradle nature を追加
+        natures 'org.springsource.ide.eclipse.gradle.core.nature'
+
+        // buildCommand の追加
+        // spring のbuildCommand を追加
+        buildCommand 'org.springframework.ide.eclipse.core.springbuilder'
+    }
+
+    // .classpath の設定
+    classpath {
+        // 依存している jar の source と javadoc をダウンロードする
+        downloadSources = true    // デフォルトは false
+        downloadJavadoc = true    // javadoc のパスは絶対パスになる
+
+        file {
+            // ソースパスの設定を削除
+            beforeMerged { classpath ->
+                // classpath.entries.clear()
+                classpath.entries.removeAll { it.kind == "src" }
+            }
+
+            // 出力パスを gradle のデフォルトに合わせる
+            whenMerged { classpath ->
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/main/java")      }*.output = "build/classes/main"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/main/resources") }*.output = "build/resources/main"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/test/java")      }*.output = "build/classes/test"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/test/resources") }*.output = "build/resources/test"
+                classpath.entries.removeAll { it.kind == "output" }
+            }
+        }
+    }
+}
+
+task ex08 {
+    doLast {
+        // webappディレクトリ配下の生成
+        mkdir 'src/main/resources/templates'
+        mkdir 'src/main/resources/static/css'
+        mkdir 'src/main/resources/static/js'
+    }
+}
+
+sup.dependsOn mkdirResource, ex08

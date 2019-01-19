@@ -1,0 +1,91 @@
+apply plugin: 'war'
+apply plugin: 'eclipse-wtp'
+
+mkdir 'src/main/webapp/'
+
+// 依存ライブラリの設定
+dependencies {
+    providedCompile 'org.apache.tomcat:tomcat-catalina:8.0.44'
+    compile 'org.postgresql:postgresql:42.1.4'
+}
+
+// eclipse プロジェクトの設定
+import org.gradle.plugins.ide.eclipse.model.SourceFolder
+eclipse {
+    // .project の設定
+    project {
+        // nature の追加
+        natures 'org.eclipse.wst.jsdt.core.jsNature'
+
+        // Gradle nature を追加
+        natures 'org.springsource.ide.eclipse.gradle.core.nature'
+
+        // buildCommand の追加
+        // eclipse-wtp にデフォルトで含まれている buildCommand
+        buildCommand 'org.eclipse.wst.jsdt.core.javascriptValidator'
+    }
+
+    // .classpath の設定
+    classpath {
+        // 依存している jar の source と javadoc をダウンロードする
+        downloadSources = true
+        downloadJavadoc = true
+
+        file {
+            // ソースパスの設定を削除
+            beforeMerged { classpath ->
+                // classpath.entries.clear()
+                classpath.entries.removeAll { it.kind == "src" }
+            }
+
+            // 出力パスを gradle のデフォルトに合わせる
+            whenMerged { classpath ->
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/main/java")      }*.output = "build/classes/main"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/main/resources") }*.output = "build/resources/main"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/test/java")      }*.output = "build/classes/test"
+                classpath.entries.findAll { it instanceof SourceFolder && it.path.startsWith("src/test/resources") }*.output = "build/resources/test"
+                classpath.entries.removeAll { it.kind == "output" }
+            }
+
+            // Web App ライブラリー のJARにソースがアタッチされない問題の対応(classpathの一番最後に追加する)
+            withXml { xml ->
+                def node = xml.asNode()
+                node.remove( node.find { it.@path == 'org.eclipse.jst.j2ee.internal.web.container' } )
+                node.appendNode( 'classpathentry', [ kind: 'con', path: 'org.eclipse.jst.j2ee.internal.web.container', exported: 'true'])
+            }
+        }
+    }
+
+    wtp {
+        // プロジェクトファセットの設定
+        facet {
+            // fixed facet jsdt
+            facet type: org.gradle.plugins.ide.eclipse.model.Facet.FacetType.fixed, name: 'wst.jsdt.web'
+            // Java
+            facet name: 'jst.java', version: '1.8'
+            // 動的 web モジュール
+            facet name: 'jst.web', version: '3.1'
+            // JavaScript
+            facet name: 'wst.jsdt.web', version: '1.0'
+        }
+    }
+
+}
+
+task ex07 {
+    doLast {
+        // プロジェクトファセットの修正
+        ant.replace(file: '.settings/org.eclipse.wst.common.project.facet.core.xml', token: '<installed facet="jst.web" version="2.4"/>', value: '')
+        ant.replace(file: '.settings/org.eclipse.wst.common.project.facet.core.xml', token: '<fixed facet="jst.java"/>', value: '')
+        ant.replace(file: '.settings/org.eclipse.wst.common.project.facet.core.xml', token: '<installed facet="jst.java" version="1.8"/>', value: '')
+        ant.replace(file: '.settings/org.eclipse.wst.common.project.facet.core.xml', token: '<installed facet="jst.web" version="2.4"/>', value: '')
+        ant.replace(file: '.settings/org.eclipse.wst.common.project.facet.core.xml', token: "\t\r\n", value: '')
+
+        // webappディレクトリ配下の生成
+        mkdir 'src/main/webapp/css'
+        mkdir 'src/main/webapp/js'
+        mkdir 'src/main/webapp/WEB-INF/views'
+    }
+}
+
+sup.dependsOn mkdirResource, ex07
