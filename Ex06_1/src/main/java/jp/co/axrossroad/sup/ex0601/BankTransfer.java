@@ -29,7 +29,6 @@ public class BankTransfer {
 
         try {
             dao = new AccountDaoImpl();
-
         } catch (DataBaseException e) {
             System.err.println(e.getErrMsg());
             e.printStackTrace();
@@ -44,9 +43,12 @@ public class BankTransfer {
          */
         try {
             accountList = dao.selectAll();
+
         } catch (DataBaseException e) {
             System.err.println(e.getErrMsg());
             e.printStackTrace();
+            // DB接続破棄
+            dao.dispose();
             // 処理終了
             return;
         }
@@ -83,6 +85,8 @@ public class BankTransfer {
         } catch (DataBaseException e) {
             System.err.println(e.getErrMsg());
             e.printStackTrace();
+            // DB接続破棄
+            dao.dispose();
             // 処理終了
             return;
         }
@@ -98,6 +102,8 @@ public class BankTransfer {
         } catch (DataBaseException e) {
             System.err.println(e.getErrMsg());
             e.printStackTrace();
+            // DB接続破棄
+            dao.dispose();
             // 処理終了
             return;
         }

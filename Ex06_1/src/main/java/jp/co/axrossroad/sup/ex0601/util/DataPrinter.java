@@ -1,6 +1,5 @@
 package jp.co.axrossroad.sup.ex0601.util;
 
-import java.text.NumberFormat;
 import java.util.List;
 
 import jp.co.axrossroad.sup.ex0601.db.dto.AccountDto;
@@ -18,30 +17,7 @@ public class DataPrinter {
      * @param accountList 口座情報のリスト
      */
     public static void print(List<AccountDto> accountList) {
-        String branchNo;
-        String accountNo;
-        String accountName;
-        long accountBalance;
-        StringBuilder outPutStr = new StringBuilder();
-        for (int i = 0; i < accountList.size(); i++) {
-            outPutStr.setLength(0);
-            AccountDto dto = accountList.get(i);
-            branchNo = dto.getBranchNo();
-            accountNo = dto.getAccountNo();
-            accountName = formatAccountName(dto.getAccountName());
-            accountBalance = dto.getAccountBalance();
-            outPutStr.append("(");
-            outPutStr.append(branchNo);
-            outPutStr.append(")\t");
-            outPutStr.append(accountNo);
-            outPutStr.append("\t");
-            outPutStr.append(accountName);
-            outPutStr.append("\t");
-            outPutStr.append(NumberFormat.getNumberInstance().format(accountBalance));
-
-            System.out.println(outPutStr.toString());
-
-        }
+        // TODO 要実装
     }
 
     /**

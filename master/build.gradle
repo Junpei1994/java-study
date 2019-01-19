@@ -1,0 +1,76 @@
+subprojects {
+
+    apply {
+        plugin 'eclipse'
+        plugin 'java'
+    }
+
+    // ソースとコンパイル済ファイルのJavaバージョン
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+
+    // エンコーディング
+    [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+    // 依存関係の解決
+    repositories { mavenCentral() }
+
+    eclipse {
+        // eclipseへCheckstyle設定の追加
+        project {
+            natures 'net.sf.eclipsecs.core.CheckstyleNature'
+            buildCommand 'net.sf.eclipsecs.core.CheckstyleBuilder'
+        }
+
+        // eclipseへJava Formatter設定の追加
+        jdt.file {
+            withProperties { properties ->
+                def formatter = new XmlSlurper().parse("$rootDir/formatter/AxrossSupFormat.xml")
+                formatter.profile.setting.each {
+                    properties.put(it.@id as String, it.@value as String)
+                }
+            }
+        }
+    }
+
+    // タスク：一括実施用
+    task sup {
+        // supは1回のみ実行
+        // 再度実行する場合はcleanEclipseをやってから
+    }
+
+    // タスク：javaのソースコード格納ディレクトリの生成
+    task mkdirJava  {
+        doLast {
+            sourceSets.all {
+                java.srcDirs*.mkdirs()
+            }
+        }
+    }
+
+    // タスク：リソース格納ディレクトリの生成
+    task mkdirResource  {
+        doLast {
+            sourceSets.all {
+                resources.srcDirs*.mkdirs()
+            }
+        }
+    }
+
+    // タスク：Checkstyleのconfigファイルを各プロジェクト直下にコピー
+    task copyCheckstyleConfig(type: Copy) {
+        // .checkstyleを.gitignoreに設定しているため、元の設定ファイルの名前は「checkstyle」
+        from "$rootDir/checkstyle/checkstyle"
+        into "$projectDir"
+        rename "checkstyle", ".checkstyle"
+    }
+
+    // タスクの前後関係の強制指定
+    tasks.eclipse.mustRunAfter mkdirJava, mkdirResource
+    copyCheckstyleConfig.mustRunAfter tasks.eclipse
+
+    // supタスクの依存関係
+    sup.dependsOn copyCheckstyleConfig, mkdirJava, tasks.eclipse
+}
+
+task wrapper(type: Wrapper) { gradleVersion = '4.1' }

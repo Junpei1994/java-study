@@ -15,11 +15,11 @@ public class DataBaseException extends Exception {
     /**
      * コンストラクタ.
      * @param t 例外オブジェクト(例外チェーン用)
-     * @param errMsg エラーメッセージ
+     * @param msg エラーメッセージ
      */
-    public DataBaseException(Throwable t, String errMsg) {
+    public DataBaseException(Throwable t, String msg) {
         super(t);
-        this.errMsg = errMsg;
+        this.errMsg = msg;
     }
 
     /**
@@ -27,6 +27,6 @@ public class DataBaseException extends Exception {
      * @return エラーメッセージ
      */
     public String getErrMsg() {
-        return errMsg;
+        return this.errMsg;
     }
 }
