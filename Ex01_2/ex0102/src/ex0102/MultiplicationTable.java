@@ -23,9 +23,9 @@ public class MultiplicationTable {
 		System.out.println(colLine);
 		
 		//合計値
-		for (int row = 0; row <= rowNumber.length; row++) {
+		for (int row = 0; row <= rowNumber.length -1; row++) {
 			
-			for (int col = 0; col <= colNumber.length; col++) {
+			for (int col = 0; col <= colNumber.length -1; col++) {
 				scoreNumber = colNumber[col] * rowNumber[row];
 				if (col == 0) {
 					System.out.print(rowNumber[row] + "|"+ "\t" + scoreNumber + "\t");
